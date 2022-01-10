@@ -61,8 +61,24 @@ int main(int argc, char *argv[]) {
 
     int clientfd = create_socket(80, "93.184.216.34");
 
-    printf("socket Created: %i", clientfd);
-    
+    printf("socket Created: %i\n", clientfd);
+
+    //sending request
+    char request[1042];
+    memset(&request[0], 0, sizeof(request));
+    sprintf(request, "GET /index.html HTTP/1.1\r\nHost: www.example.com\r\n\r\n");
+
+    int num_sent = send(clientfd, request, strlen(request), 0);
+    printf("Bytes sent: %i\n", num_sent);
+
+    char response[1042];
+    memset(&response[0], 0, sizeof(response));
+    int bytes_recv = recv(clientfd, response, 1024, 0);
+
+    printf("Bytes Recieved: %i", bytes_recv);
+    printf("%s\n", response);
+
+
 }
 
 
