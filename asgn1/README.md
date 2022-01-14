@@ -24,13 +24,6 @@ ERROR CHECKING:
 - check socket creation
 - check connection 
 
-
-Questions: 
-- Will inputs always be structured the same.
-- dont need to check the URL
-
-- it should work with just the root directory
-
 WHEN SUBMitting
 - Submit tar.gz compressed file
 - format lab1-jbyron.tar.gz
@@ -40,4 +33,12 @@ Resources:
 - referenced for creating socket https://www.geeksforgeeks.org/socket-programming-cc/
 - Response code taken from cse130 Lab1 
 
+
+Questions: 
+- Will inputs always be structured the same.
+- dont need to check the URL
+
+- it should work with just the root directory
+
+- How should we handle output.dat? create it each time, or assume that the file already exists, should we truncate or overide
 

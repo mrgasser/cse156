@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #define BUFFER_SIZE 4096 //Buffer size
 /*
@@ -80,8 +81,35 @@ char* handle_args(int argc, char *argv[]) {
 
 } 
 */
+// Loop through remaining bytes(content_len) from response and
+// write them to output file
+void finish_get(int clientfd, int content_len) {
+    int bytes_recv;
+    char* buffer[BUFFER_SIZE];
+    memset(&buffer[0], 0, sizeof(buffer));
 
-char* recv_header(int clientfd, int type) {
+    // open the file if it exists, otherwise create it 
+    int file = open("output.dat", O_WRONLY | O_TRUNC | O_CREAT, 00700);
+
+    // file exitst/was created
+    if (file != -1) {
+        for (int i = 0; i < (content_len / BUFFER_SIZE) + 1; i++) {
+      
+        if (i < content_len / BUFFER_SIZE) { // if i < byteCount / buffSize we can fill entire buffer
+            bytes_recv = recv(clientfd, buffer, BUFFER_SIZE, 0); 
+            write(file, buffer, bytes_recv);
+        } else {                               // else we read byteCount - (buffSize * i) bytes
+            bytes_recv = recv(clientfd, buffer, content_len - (BUFFER_SIZE * i), 0);
+            write(file, buffer, bytes_recv);
+        }
+            memset(&buffer[0], 0, sizeof(buffer));    // clear buffer for next read/write
+        }
+    }
+    close(file);
+    return;
+}
+
+void recv_header(int clientfd, int type) {
     int recv_bytes;
     int content_len;
     int end_of_line = 0;
@@ -134,10 +162,10 @@ char* recv_header(int clientfd, int type) {
         //Get request
     }
 
-    char *str = "";
-    strcpy(str, response);
+    //char *str = "";
+    //strcpy(str, response);
 
-    return str;
+    return;
 }
 
 void handle_get (int clientfd, char* item, char* host) {
@@ -152,10 +180,10 @@ void handle_get (int clientfd, char* item, char* host) {
     // check num_sent ***
 
     //receive the header
-    char* header = recv_header(clientfd, 1);
-    // Receive response
-    // Write response to output.dat
-    printf("Header completed: %s\n", header);
+    recv_header(clientfd, 1);
+    //printf("Header completed: %s\n", header);
+
+    return;
 }
 
 int main(int argc, char *argv[]) {
