@@ -13,4 +13,31 @@ Design
 
 Notes:
 - For arguments, loop through argv, build up argument string, (ommiting -h), then using sscanf parse args into, host name, ip, etc..
+- it should work with just the root directory (No resource was given)
+    - looks life if no resource given, index.html is the resource
+- Buffer size 256
+- Errors printed to STDerr
+
+ERROR CHECKING:
+- Check IP address is valid
+- Check for port
+- check socket creation
+- check connection 
+
+
+Questions: 
+- Will inputs always be structured the same.
+- dont need to check the URL
+
+- it should work with just the root directory
+
+WHEN SUBMitting
+- Submit tar.gz compressed file
+- format lab1-jbyron.tar.gz
+- https://www.howtogeek.com/248780/how-to-compress-and-extract-files-using-the-tar-command-on-linux/
+
+Resources:
+- referenced for creating socket https://www.geeksforgeeks.org/socket-programming-cc/
+- Response code taken from cse130 Lab1 
+
 
