@@ -60,7 +60,6 @@ void http_error(int code) {
 // Loop through remaining bytes(content_len) from response and
 // write them to output file
 void finish_get(int clientfd, int content_len) {
-    printf("finishing get request\n");
     int bytes_recv;
     char* buffer[BUFFER_SIZE];
     memset(&buffer[0], 0, sizeof(buffer));
@@ -125,7 +124,6 @@ void recv_header(int clientfd, int type) {
 
         // when we reach a newline character we know we are at the end of a line
         if (strcmp(&buffer[0], "\n") == 0) {
-            printf("Current Line: %s\n", line);
 
             end_of_line = 1; // set end of line character to true
 
@@ -157,9 +155,6 @@ void recv_header(int clientfd, int type) {
         http_error(code);
     }
 
-    printf("response: \n%s\n", response);
-    printf("%i\n", content_len);
-
     if(type == 1) { // type 1 we have a GET request
         finish_get(clientfd, content_len);
     } else { // else we have a HEAD request
@@ -176,10 +171,7 @@ void handle_get (int clientfd, char* item, char* host) {
 
     // Format request string
     sprintf(request, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", item, host);
-    printf("SENDING: %s", request);
     int num_sent = send(clientfd, request, strlen(request), 0); // send request
-    printf("bytes sent: %i\n", num_sent);
-    // check num_sent ***
 
     //receive the header
     recv_header(clientfd, 1);
@@ -203,7 +195,6 @@ void handle_head(int clientfd, char* item, char* host) {
 }
 
 void handle_args(char *argv[], int head_flag) {
-    printf("handling args\n");
     char str[1024];
     char host[1024];
     char ip[100];
@@ -217,18 +208,13 @@ void handle_args(char *argv[], int head_flag) {
 
     strcpy(host, argv[1]); // Save host from 1st arg
     strcpy(str, argv[2]); //save ip, port, and item in new string
-    printf("Start of parsing: %s | %s\n", host, str);
 
     strcpy(og_str, str); // save og string
 
     //parsing args for IP, Port, and Item
     token = strtok(str, "/"); //get first token
-    printf("TOKEN: %s\n", token);
-    printf("comparing: %s | %s\n", og_str, token);
     if (strcmp(token, og_str) != 0) { // if token and orig string arnt equal, item exists
-        printf("Item was in OG string\n");
         strcpy(ip_and_port, token); // first token will be IP and Port
-        printf("1000, ip_and_port: %s\n", ip_and_port);
         token = strtok(NULL, "/"); //get second token will be item
         //printf("TOKEN: %s\n", token);
         if (token != NULL) {
@@ -240,7 +226,6 @@ void handle_args(char *argv[], int head_flag) {
         strcpy(og_str, ip_and_port); 
 
         token = strtok(ip_and_port, ":"); //tokenize for IP and port
-        printf("TOKEN: %s\n", token);
         if (strcmp(token, og_str) != 0) { //port exists if token != ip_and_port
             strcpy(ip, token); // first token will be IP
             token = strtok(NULL, ":"); //get second token will be port
@@ -249,7 +234,6 @@ void handle_args(char *argv[], int head_flag) {
             }
         } else { // else there is no port
             strcpy(ip, ip_and_port); // Copy ip
-            //port = 80; // set port to default 80
         }
     } else { // else if token == str, item is not present
         strcpy(ip_and_port, token); // first token will be IP and Port
@@ -268,15 +252,12 @@ void handle_args(char *argv[], int head_flag) {
             }
         } else { // else there is no port
             strcpy(ip, ip_and_port); // Copy ip
-            //port = 80; // set port to default 80
         }
     }
-    printf("Port: %i\nIP: %s\n", port, ip);
 
     // create socket
     int clientfd = create_socket(port, ip);
     
-    printf("Item: %s\nHost: %s\n", item, host);
     if (head_flag) { // if head flag true we send a head request
         handle_head(clientfd, item, host);
     } else { // else we send a get request
@@ -286,7 +267,6 @@ void handle_args(char *argv[], int head_flag) {
 } 
 
 int main(int argc, char *argv[]) {
-    printf("argc: %i\n", argc);
 
     // check for correct number of args
     if (argc < 3 || argc > 5) {
@@ -299,8 +279,6 @@ int main(int argc, char *argv[]) {
             head_flag = 1;
         }
     }
-    
-    printf("Head_flag: %i\n", head_flag);
 
     // start by handling arguments
     handle_args(argv, head_flag);

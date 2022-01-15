@@ -61,8 +61,10 @@ Testing:
 
 ./myweb ssrc-nas-1.soe.ucsc.edu 128.114.52.55:8080/
 
-./myweb 
+./myweb google.com 
 
 ./myweb softwareqatest.com 216.92.49.183
+
+
 
 all the above also done with -h 
