@@ -58,7 +58,7 @@ void finish_get(int clientfd, int content_len) {
         }
         close(file);
     } else {
-        //Error Opening file
+        err(EXIT_FAILURE, "File failed to open");
     }
     return;
 }
@@ -171,7 +171,7 @@ void handle_args(char *argv[], int head_flag) {
     //parsing args for IP, Port, and Item
     token = strtok(str, "/"); //get first token
     printf("TOKEN: %s\n", token);
-    if (token != NULL) { // if true item is present
+    if (strcmp(token, str) != 0) { // if token and orig string arnt equal, item exists
         strcpy(ip_and_port, token); // first token will be IP and Port
         printf("1000, ip_and_port: %s\n", ip_and_port);
         token = strtok(NULL, "/"); //get second token will be item
@@ -180,7 +180,7 @@ void handle_args(char *argv[], int head_flag) {
         printf("item: %s\n", item);
         token = strtok(ip_and_port, ":"); //tokenize for IP and port
         printf("TOKEN: %s\n", token);
-        if (token != NULL) { //port exists
+        if (strcmp(token, ip_and_port) != 0) { //port exists if token != ip_and_port
             strcpy(ip, token); // first token will be IP
             token = strtok(NULL, ":"); //get second token will be port
             port = atoi(token); //covert port to int
@@ -188,10 +188,11 @@ void handle_args(char *argv[], int head_flag) {
             strcpy(ip, ip_and_port); // Copy ip
             port = 80; // set port to default 80
         }
-    } else { // else if token is null item is not present
+    } else { // else if token == str, item is not present
+        strcpy(ip_and_port, token); // first token will be IP and Port
         strcpy(item, "/index.html"); // default item will be index.html
         token = strtok(ip_and_port, ":"); //tokenize for IP and port
-        if (token != NULL) { //port exists
+        if (strcmp(token, ip_and_port) != 0) { //port exists
             strcpy(ip, token); // first token will be IP
             token = strtok(NULL, ":"); //get second token will be port
             port = atoi(token); //covert port to int
