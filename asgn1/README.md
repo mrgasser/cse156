@@ -42,3 +42,14 @@ Questions:
 
 - How should we handle output.dat? create it each time, or assume that the file already exists, should we truncate or overide
 
+
+ssrc-nas-1.soe.ucsc.edu:8080
+
+bin = empty
+doc = README.md 
+src = 
+Makefile - should place executable in bin
+
+type make
+then bin/my
+output.dat goes to pwd

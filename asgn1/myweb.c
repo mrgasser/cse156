@@ -6,31 +6,14 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <err.h>
 
 #define BUFFER_SIZE 4096 //Buffer size
-/*
-// Function parses program arguments
-void parse_args(argc, argv) {
-    // get program arguments
-    int c;
-    while ((c = getopt(argc, argv, "h")) != -1) {
-        switch (c)
-        {
-        case 'h':
-            // Enable non printing flag
-            break;
-        
-        default:
-            break;
-        }
-    }
-}
-*/
 
 int create_socket (int port, char* IP) {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) { //error creating socketfd
-        return -1;
+        err(EXIT_FAILURE, "socket error error");
     }
 
     struct sockaddr_in addr;
@@ -40,50 +23,19 @@ int create_socket (int port, char* IP) {
 
     //Convert IP str into hex and store into sin_addr of socket struct
     if (inet_pton(AF_INET, IP, &addr.sin_addr) <= 0) { // check if IP address is valid
-        return -1;
+        err(EXIT_FAILURE, "invalid ip address");
     }
 
     if (connect(sockfd, (struct sockaddr*) &addr, sizeof addr)) {
-        return -1;
+        err(EXIT_FAILURE, "connection error");
     }
     return sockfd;
 }
 
-/*
-char* handle_args(int argc, char *argv[]) {
-    char s[1024];
-    char host[1024];
-    char ip_adr[1024];
-
-    // check for correct number of args
-    if (argc < 3) {
-        // error wrong number of argument
-    }
-
-    // get host, check if its valid
-    // the get IP, check if IP has a port,
-    // parse of item
-    
-    // loop through and build up string of arguments
-    for (int i = 2; i < argc; i++) {
-        memset(&s[0], 0, sizeof(s));
-        strcat(s, argv[i]);
-        //printf("%s ", s);
-    }
-    printf("arguments: %s", s);
-
-    // Parse the host from the arguments
-    sscanf(s, "%s %*s", host);
-
-    const char c [2] = "/";
-
-    char* first_token = strtok(s, c);
-
-} 
-*/
 // Loop through remaining bytes(content_len) from response and
 // write them to output file
 void finish_get(int clientfd, int content_len) {
+    printf("finishing get request\n");
     int bytes_recv;
     char* buffer[BUFFER_SIZE];
     memset(&buffer[0], 0, sizeof(buffer));
@@ -104,8 +56,10 @@ void finish_get(int clientfd, int content_len) {
         }
             memset(&buffer[0], 0, sizeof(buffer));    // clear buffer for next read/write
         }
+        close(file);
+    } else {
+        //Error Opening file
     }
-    close(file);
     return;
 }
 
@@ -130,6 +84,7 @@ void recv_header(int clientfd, int type) {
          // if prev at end of line and next character is \r we move on
         if ((strcmp(&buffer[0], "\r") == 0) && end_of_line) {
             recv_bytes = recv(clientfd, buffer, 1, 0); // one last recv to get last \n
+            strcat(response, buffer); //append last \n to string
             break;
         } else {
             end_of_line = 0;
@@ -157,13 +112,12 @@ void recv_header(int clientfd, int type) {
     printf("response: %s\n", response);
     printf("%i\n", content_len);
 
-    if(type == 1) {
+    if(type == 1) { // type 1 we have a GET request
         finish_get(clientfd, content_len);
-        //Get request
+    } else { // else we have a HEAD request
+        // print out entire header to stdout
+        printf("%s",response);
     }
-
-    //char *str = "";
-    //strcpy(str, response);
 
     return;
 }
@@ -181,28 +135,110 @@ void handle_get (int clientfd, char* item, char* host) {
 
     //receive the header
     recv_header(clientfd, 1);
-    //printf("Header completed: %s\n", header);
-
     return;
 }
+
+void handle_head(int clientfd, char* item, char* host) {
+    char request[1042];
+    memset(&request[0], 0, sizeof(request));
+
+    // Format request string
+    sprintf(request, "HEAD %s HTTP/1.1\r\nHost: %s\r\n\r\n", item, host);
+    printf("SENDING: %s", request);
+    int num_sent = send(clientfd, request, strlen(request), 0); // send request
+    printf("bytes sent: %i\n", num_sent);
+    // check num_sent ***
+
+    //receive the header
+    recv_header(clientfd, 0);
+    return;
+}
+
+void handle_args(char *argv[], int head_flag) {
+    printf("handling args\n");
+    char str[1024];
+    char host[1024];
+    char ip[100];
+    char ip_and_port[1024];
+    char item[1024] = "/";
+    char *token;
+    int port;
+
+    strcpy(host, argv[1]); // Save host from 1st arg
+    strcpy(str, argv[2]); //save ip, port, and item in new string
+    printf("Start of parsing: %s | %s\n", host, str);
+
+    //parsing args for IP, Port, and Item
+    token = strtok(str, "/"); //get first token
+    printf("TOKEN: %s\n", token);
+    if (token != NULL) { // if true item is present
+        strcpy(ip_and_port, token); // first token will be IP and Port
+        printf("1000, ip_and_port: %s\n", ip_and_port);
+        token = strtok(NULL, "/"); //get second token will be item
+        printf("TOKEN: %s\n", token);
+        strcat(item, token); // cat token onto "/" to get complete item
+        printf("item: %s\n", item);
+        token = strtok(ip_and_port, ":"); //tokenize for IP and port
+        printf("TOKEN: %s\n", token);
+        if (token != NULL) { //port exists
+            strcpy(ip, token); // first token will be IP
+            token = strtok(NULL, ":"); //get second token will be port
+            port = atoi(token); //covert port to int
+        } else { // else there is no port
+            strcpy(ip, ip_and_port); // Copy ip
+            port = 80; // set port to default 80
+        }
+    } else { // else if token is null item is not present
+        strcpy(item, "/index.html"); // default item will be index.html
+        token = strtok(ip_and_port, ":"); //tokenize for IP and port
+        if (token != NULL) { //port exists
+            strcpy(ip, token); // first token will be IP
+            token = strtok(NULL, ":"); //get second token will be port
+            port = atoi(token); //covert port to int
+        } else { // else there is no port
+            strcpy(ip, ip_and_port); // Copy ip
+            port = 80; // set port to default 80
+        }
+    }
+    printf("Port: %i\nIP: %s\n", port, ip);
+
+    // create socket
+    int clientfd = create_socket(port, ip);
+    
+    printf("Item: %s\nHost: %s\n", item, host);
+    if (head_flag) { // if head flag true we send a head request
+        handle_head(clientfd, item, host);
+    } else { // else we send a get request
+        handle_get(clientfd, item, host);
+    }
+    return;
+} 
 
 int main(int argc, char *argv[]) {
     printf("argc: %i\n", argc);
 
-    //printing out args
-    char s[100];
-    for (int i = 1; i < argc; i++) {
-        memset(&s[0], 0, sizeof(s));
-        strcpy(s, argv[i]);
-        printf("%s ", s);
+    // check for correct number of args
+    if (argc < 3 || argc > 5) {
+        err(EXIT_FAILURE, "Incorrect number of arguments");
     }
-    printf("\n");
 
-    int clientfd = create_socket(80, "93.184.216.34");
-    printf("socket Created: %i\n", clientfd);
+    int head_flag = 0;
+    if (argc == 4) {
+        if (strcmp(argv[3], "-h") == 0) { // if -h arg is present, we set the head_flag
+            head_flag = 1;
+        }
+    }
+    
+    printf("Head_flag: %i\n", head_flag);
+
+    // start by handling arguments
+    handle_args(argv, head_flag);
+
+    //int clientfd = create_socket(80, "93.184.216.34");
+    //printf("socket Created: %i\n", clientfd);
     // check socket for failure ***
 
-    handle_get(clientfd, "/index.html", "www.example.com");
+    //handle_get(clientfd, "/index.html", "www.example.com");
 
     /*
     //sending request
@@ -222,8 +258,7 @@ int main(int argc, char *argv[]) {
     printf("%s\n", response);
     */
     
-
-    close(clientfd); // close the connection
+    exit(0);
 }
 
 
