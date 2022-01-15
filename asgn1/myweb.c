@@ -68,7 +68,7 @@ void recv_header(int clientfd, int type) {
     int content_len;
     int first_line = 1;
     int end_of_line = 0;
-    int code;
+    int code = 0;
     char command[100];
     char buffer[10];
     char cont_length_buff[200];
@@ -106,7 +106,7 @@ void recv_header(int clientfd, int type) {
 
             // need to parse first line line for code and command
             if (first_line) {
-                sscanf(line, "%*s %i %s", code, command); // parse buffer for command and filename
+                sscanf(line, "%*s %i %s", &code, command); // parse buffer for command and filename
                 first_line = 0; // set first_line bool to false
             }
         
