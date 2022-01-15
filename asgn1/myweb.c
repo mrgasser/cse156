@@ -66,7 +66,10 @@ void finish_get(int clientfd, int content_len) {
 void recv_header(int clientfd, int type) {
     int recv_bytes;
     int content_len;
+    int first_line = 1;
     int end_of_line = 0;
+    int code;
+    char command[100];
     char buffer[10];
     char cont_length_buff[200];
     char chunked_buffer[200];
@@ -78,11 +81,13 @@ void recv_header(int clientfd, int type) {
     memset(&buffer[0], 0, sizeof(buffer));
     memset(&line[0], 0, sizeof(line));
     memset(&response[0], 0, sizeof(response));
+    memset(&chunked_buffer[0], 0, sizeof(chunked_buffer));
+    memset(&command[0], 0, sizeof(command));
 
     while(1) {
         recv_bytes = recv(clientfd, buffer, 1, 0); // receive 1 byte at a time
 
-         // if prev at end of line and next character is \r we move on
+        // if prev at end of line and next character is \r we move on
         if ((strcmp(&buffer[0], "\r") == 0) && end_of_line) {
             recv_bytes = recv(clientfd, buffer, 1, 0); // one last recv to get last \n
             strcat(response, buffer); //append last \n to string
@@ -95,10 +100,15 @@ void recv_header(int clientfd, int type) {
 
         // when we reach a newline character we know we are at the end of a line
         if (strcmp(&buffer[0], "\n") == 0) {
-
             printf("Current Line: %s\n", line);
 
             end_of_line = 1; // set end of line character to true
+
+            // need to parse first line line for code and command
+            if (first_line) {
+                sscanf(line, "%*s %i %s", code, command); // parse buffer for command and filename
+                first_line = 0; // set first_line bool to false
+            }
         
             //Parse line for centent length
             sscanf(line, "%s", cont_length_buff);
@@ -115,6 +125,12 @@ void recv_header(int clientfd, int type) {
             strcat(response, line); //concatonte line onto entire response
             memset(&line[0], 0, sizeof(line)); // reset line string for next line
         }
+    }
+    
+    // if code isnt 200 there was some error
+    if (code != 200) {
+        fprintf(stderr, "Error %i %s\n", code, command);
+        exit(1);
     }
 
     printf("response: %s\n", response);
@@ -242,30 +258,6 @@ int main(int argc, char *argv[]) {
 
     // start by handling arguments
     handle_args(argv, head_flag);
-
-    //int clientfd = create_socket(80, "93.184.216.34");
-    //printf("socket Created: %i\n", clientfd);
-    // check socket for failure ***
-
-    //handle_get(clientfd, "/index.html", "www.example.com");
-
-    /*
-    //sending request
-    char request[1042];
-    memset(&request[0], 0, sizeof(request));
-    sprintf(request, "GET /index.html HTTP/1.1\r\nHost: www.example.com\r\n\r\n");
-
-    int num_sent = send(clientfd, request, strlen(request), 0);
-    printf("Bytes sent: %i\n", num_sent);
-
-    // receiving response
-    char response[1042];
-    memset(&response[0], 0, sizeof(response));
-    int bytes_recv = recv(clientfd, response, 1024, 0);
-
-    printf("Bytes Recieved: %i\n", bytes_recv);
-    printf("%s\n", response);
-    */
     
     exit(0);
 }
