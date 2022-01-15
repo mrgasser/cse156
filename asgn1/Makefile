@@ -1,13 +1,15 @@
 FLAGS = -Wall -Wextra -Wpedantic -Wshadow
 
 all : myweb
+	mv myweb ./bin
 
-myweb : myweb.o
-	clang ${FLAGS} -o myweb myweb.o
+myweb : ./src/myweb.o
+	clang ${FLAGS} -o myweb ./src/myweb.o
 
-myweb.o : myweb.c
-	clang ${FLAGS} -c myweb.c
+myweb.o : ./src/myweb.c
+	clang ${FLAGS} -c ./src/myweb.c
+	mv myweb.o ./src
 
 clean:
-	-rm *.o
-	-rm myweb
+	-rm ./src/*.o
+	-rm ./bin/myweb
