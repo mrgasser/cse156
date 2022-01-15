@@ -69,6 +69,7 @@ void recv_header(int clientfd, int type) {
     int end_of_line = 0;
     char buffer[10];
     char cont_length_buff[200];
+    char chunked_buffer[200];
     char line[BUFFER_SIZE];
     char response[BUFFER_SIZE];
 
@@ -104,6 +105,13 @@ void recv_header(int clientfd, int type) {
             if (strcmp(cont_length_buff, "Content-Length:") == 0) {
                 sscanf(line, "%*s %i", &content_len); // get content_len value from line
             }
+            
+            //parse line for chunked error
+            sscanf(line, "%s", chunked_buffer);
+            if (strcmp(chunked_buffer, "Transfer-Encoding:") == 0) { //exit with error if true
+                err(EXIT_FAILURE, "Chunkung not supported");
+            }
+
             strcat(response, line); //concatonte line onto entire response
             memset(&line[0], 0, sizeof(line)); // reset line string for next line
         }
