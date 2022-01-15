@@ -172,6 +172,9 @@ void handle_get (int clientfd, char* item, char* host) {
     // Format request string
     sprintf(request, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", item, host);
     int num_sent = send(clientfd, request, strlen(request), 0); // send request
+    if (num_sent < 0) {
+        err(EXIT_FAILURE, "Error sending message");
+    }
 
     //receive the header
     recv_header(clientfd, 1);
@@ -187,7 +190,9 @@ void handle_head(int clientfd, char* item, char* host) {
     printf("SENDING: %s", request);
     int num_sent = send(clientfd, request, strlen(request), 0); // send request
     printf("bytes sent: %i\n", num_sent);
-    // check num_sent ***
+    if (num_sent < 0) {
+        err(EXIT_FAILURE, "Error sending message");
+    }
 
     //receive the header
     recv_header(clientfd, 0);
