@@ -53,3 +53,16 @@ Makefile - should place executable in bin
 type make
 then bin/my
 output.dat goes to pwd
+
+
+Testing:
+
+./bin/myweb www.neverssl.com 13.35.121.94:80
+
+./myweb ssrc-nas-1.soe.ucsc.edu 128.114.52.55:8080/
+
+./myweb 
+
+./myweb softwareqatest.com 216.92.49.183
+
+all the above also done with -h 

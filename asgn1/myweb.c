@@ -137,7 +137,7 @@ void recv_header(int clientfd, int type) {
         
             //Parse line for centent length
             sscanf(line, "%s", cont_length_buff);
-            if (strcmp(cont_length_buff, "Content-Length:") == 0) {
+            if (strcmp(cont_length_buff, "Content-length:") == 0 || strcmp(cont_length_buff, "Content-Length:") == 0)  {
                 sscanf(line, "%*s %i", &content_len); // get content_len value from line
             }
             
@@ -157,7 +157,7 @@ void recv_header(int clientfd, int type) {
         http_error(code);
     }
 
-    printf("response: %s\n", response);
+    printf("response: \n%s\n", response);
     printf("%i\n", content_len);
 
     if(type == 1) { // type 1 we have a GET request
@@ -210,44 +210,65 @@ void handle_args(char *argv[], int head_flag) {
     char ip_and_port[1024];
     char item[1024] = "/";
     char *token;
-    int port;
+    char og_str[1024];
+    int port = 80;
+
+    memset(&og_str[0], 0, sizeof(og_str));
 
     strcpy(host, argv[1]); // Save host from 1st arg
     strcpy(str, argv[2]); //save ip, port, and item in new string
     printf("Start of parsing: %s | %s\n", host, str);
 
+    strcpy(og_str, str); // save og string
+
     //parsing args for IP, Port, and Item
     token = strtok(str, "/"); //get first token
     printf("TOKEN: %s\n", token);
-    if (strcmp(token, str) != 0) { // if token and orig string arnt equal, item exists
+    printf("comparing: %s | %s\n", og_str, token);
+    if (strcmp(token, og_str) != 0) { // if token and orig string arnt equal, item exists
         printf("Item was in OG string\n");
         strcpy(ip_and_port, token); // first token will be IP and Port
         printf("1000, ip_and_port: %s\n", ip_and_port);
         token = strtok(NULL, "/"); //get second token will be item
-        printf("TOKEN: %s\n", token);
-        strcat(item, token); // cat token onto "/" to get complete item
-        printf("item: %s\n", item);
+        //printf("TOKEN: %s\n", token);
+        if (token != NULL) {
+            strcat(item, token); // cat token onto "/" to get complete item
+        }
+
+        // reset og_str for new tokenization
+        memset(&og_str[0], 0, sizeof(og_str));
+        strcpy(og_str, ip_and_port); 
+
         token = strtok(ip_and_port, ":"); //tokenize for IP and port
         printf("TOKEN: %s\n", token);
-        if (strcmp(token, ip_and_port) != 0) { //port exists if token != ip_and_port
+        if (strcmp(token, og_str) != 0) { //port exists if token != ip_and_port
             strcpy(ip, token); // first token will be IP
             token = strtok(NULL, ":"); //get second token will be port
-            port = atoi(token); //covert port to int
+            if (token != NULL) {
+                port = atoi(token); //covert port to int
+            }
         } else { // else there is no port
             strcpy(ip, ip_and_port); // Copy ip
-            port = 80; // set port to default 80
+            //port = 80; // set port to default 80
         }
     } else { // else if token == str, item is not present
         strcpy(ip_and_port, token); // first token will be IP and Port
         strcpy(item, "/index.html"); // default item will be index.html
+
+        // reset og_str for new tokenization
+        memset(&og_str[0], 0, sizeof(og_str));
+        strcpy(og_str, ip_and_port); 
+
         token = strtok(ip_and_port, ":"); //tokenize for IP and port
-        if (strcmp(token, ip_and_port) != 0) { //port exists
+        if (strcmp(token, og_str) != 0) { //port exists
             strcpy(ip, token); // first token will be IP
             token = strtok(NULL, ":"); //get second token will be port
-            port = atoi(token); //covert port to int
+            if (token != NULL) {
+                port = atoi(token); //covert port to int
+            }
         } else { // else there is no port
             strcpy(ip, ip_and_port); // Copy ip
-            port = 80; // set port to default 80
+            //port = 80; // set port to default 80
         }
     }
     printf("Port: %i\nIP: %s\n", port, ip);
