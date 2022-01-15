@@ -32,6 +32,31 @@ int create_socket (int port, char* IP) {
     return sockfd;
 }
 
+// function prints out the status code and error depending on the given code
+void http_error(int code) {
+    switch(code) {
+        case 400 : // Bad request
+            fprintf(stderr, "Error %i\n", code);
+            break;
+        case 403 : // Forbidden
+            fprintf(stderr, "Error %i Forbidden\n", code);
+            break;
+        case 404 : // Not found
+            fprintf(stderr, "Error %i Not Found\n", code);
+            break;
+        case 500 : // internal server error
+            fprintf(stderr, "Error %i Internal Server Error\n", code);
+            break;
+        case 501: // Not implemented
+            fprintf(stderr, "Error %i Not Implemented\n", code);
+            break;
+        default:
+            fprintf(stderr, "Error %i\n", code);
+            break;
+    }
+    exit(1);
+}
+
 // Loop through remaining bytes(content_len) from response and
 // write them to output file
 void finish_get(int clientfd, int content_len) {
@@ -129,8 +154,7 @@ void recv_header(int clientfd, int type) {
     
     // if code isnt 200 there was some error
     if (code != 200) {
-        fprintf(stderr, "Error %i %s\n", code, command);
-        exit(1);
+        http_error(code);
     }
 
     printf("response: %s\n", response);
@@ -196,6 +220,7 @@ void handle_args(char *argv[], int head_flag) {
     token = strtok(str, "/"); //get first token
     printf("TOKEN: %s\n", token);
     if (strcmp(token, str) != 0) { // if token and orig string arnt equal, item exists
+        printf("Item was in OG string\n");
         strcpy(ip_and_port, token); // first token will be IP and Port
         printf("1000, ip_and_port: %s\n", ip_and_port);
         token = strtok(NULL, "/"); //get second token will be item
