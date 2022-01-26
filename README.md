@@ -1,7 +1,7 @@
 # cse156
 Projects for 156
 
-project 1:
+ASGN 1:
 
 asgn1 Readme
 
@@ -73,3 +73,10 @@ Testing:
 ./bin/myweb www.testingmcafeesites.com 23.45.205.250:80
 
 all the above also done with -h 
+
+
+ASGN 2:
+
+Questions:
+- Are the program arguments going to allways be in said order?
+
