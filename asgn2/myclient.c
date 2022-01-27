@@ -10,8 +10,9 @@
 
 // this function reads data from a file and
 // sends said data to the server
-void send_file(int sockfd, FILE* in_file, FILE* out_file, int mtu, const struct sockaddr* dest_addr) {
+void send_file(int sockfd, FILE* in_file, FILE* out_file, int mtu, const struct sockaddr* dest_addr, socklen_t servlen) {
     int bytes_recv;
+    int bytes_sent;
     char send_buffer[mtu]; 
     char recv_buffer[mtu + 1];
     memset(&send_buffer[0], 0, sizeof(send_buffer));
@@ -21,10 +22,15 @@ void send_file(int sockfd, FILE* in_file, FILE* out_file, int mtu, const struct 
     // Sending bytes to server, receiving bytes back from server
     // Writing received bytes to out_file
     while (fgets(send_buffer, mtu, in_file) != NULL) {
-        printf("Line:\n%s", send_buffer); // print out buffer
+        printf("send buffer: %s\n", send_buffer); // print out buffer
 
         // send packet to server (size mtu)
-        sendto(sockfd, send_buffer, strlen(send_buffer), 0, dest_addr, sizeof(dest_addr));
+        bytes_sent = sendto(sockfd, send_buffer, strlen(send_buffer), 0, (struct sockaddr*) &dest_addr, servlen);
+
+        printf("bytes sent: %i\n", bytes_sent);
+        if (bytes_sent == -1) {
+            err(EXIT_FAILURE, "Error sending data to server");
+        }
 
         // receive packets back from server
         bytes_recv = recvfrom(sockfd, recv_buffer, mtu, 0, NULL, NULL);
@@ -57,7 +63,7 @@ int main(int argc, char *argv[]) {
 
     printf("Creating Client Socket\n");
     // Create UDP socket
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) { //error creating socketfd
         err(EXIT_FAILURE, "socket error error");
     }
@@ -81,7 +87,7 @@ int main(int argc, char *argv[]) {
     }
 
     // call funtion to read and send file to server
-    send_file(sockfd, in_fp, out_fp, mtu, (struct sockaddr*) &addr); 
+    send_file(sockfd, in_fp, out_fp, mtu, (struct sockaddr*) &addr, sizeof(addr)); 
 
     exit(0); //exit successful
 }

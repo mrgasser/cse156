@@ -15,6 +15,8 @@ void handle_packets(int sockfd, struct sockaddr* clientaddr, socklen_t clientlen
     int bytes_recv;
     socklen_t clen;
     char buffer[MAX_LINE];
+    
+    printf("Ready for packets\n");
 
     // infite loop to accept and echo back packets
     while(1) {
@@ -22,6 +24,9 @@ void handle_packets(int sockfd, struct sockaddr* clientaddr, socklen_t clientlen
 
         // receive data packet from client
         bytes_recv = recvfrom(sockfd, buffer, MAX_LINE, 0, clientaddr, &clen);
+
+        printf("Bytes Received: %i\n", bytes_recv);
+        printf("BUFFER RECEIVED:\n%s\n", buffer);
 
         // echo data right back to client
         sendto(sockfd, buffer, bytes_recv, 0, clientaddr, clen); 
