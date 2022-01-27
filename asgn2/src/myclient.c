@@ -32,13 +32,11 @@ void send_file(int sockfd, FILE* in_file, FILE* out_file, int mtu, const struct 
     // Sending bytes to server, receiving bytes back from server
     // Writing received bytes to out_file
     while (fgets(send_buffer, mtu - HEADER_SIZE, in_file) != NULL) {
-        printf("send buffer: %s\n", send_buffer); // print out buffer
 
         alarm(60); // after 60 seconds, we exit program with a transmission error
 
         // send packet to server (size mtu)
         bytes_sent = sendto(sockfd, send_buffer, strlen(send_buffer), 0, dest_addr, servlen);
-        printf("bytes sent: %i\n", bytes_sent);
         if (bytes_sent == -1) {
             err(EXIT_FAILURE, "Error sending data to server");
         }
@@ -47,8 +45,6 @@ void send_file(int sockfd, FILE* in_file, FILE* out_file, int mtu, const struct 
         alarm(60); // after 60 seconds, we exit program with a transmission error
         bytes_recv = recvfrom(sockfd, recv_buffer, mtu, 0, NULL, NULL); // receive packets back from server
         alarm(0); // reset alarm on successful reply from server
-
-        printf("Bytes received: %i\n", bytes_recv);
 
         recv_buffer[bytes_recv] = 0; // Null Terminate String
         fputs(recv_buffer, out_file); // write string to out_file
@@ -84,9 +80,6 @@ int main(int argc, char *argv[]) {
         err(EXIT_FAILURE, "Input and Output files must differ");
     }
 
-    printf("Arguments:\n%s %i %i %s %s\n", ip_addr, port, mtu, in_file, out_file);
-
-    printf("Creating Client Socket\n");
     // Create UDP socket
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) { //error creating socketfd

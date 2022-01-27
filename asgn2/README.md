@@ -18,7 +18,7 @@ The file you are reading
 To compile program type make
 
 to run program first run the server
-./myserver port
+./bin/myserver port
 
 then run x number of clients
-./myclient IP port mtu inputfile outputfile\
+./bin/myclient IP port mtu inputfile outputfile\

@@ -1,13 +1,15 @@
 FLAGS = -Wall -Wextra -Wpedantic -Wshadow
 
 all : myclient myserver
+	mv myclient ./bin
+	mv myserver ./bin
 
-myclient: myclient.c
-	clang ${FLAGS} -o myclient myclient.c
+myclient: ./src/myclient.c
+	clang ${FLAGS} -o myclient ./src/myclient.c
 
-myserver: myserver.c
-	clang ${FLAGS} -o myserver myserver.c
+myserver: ./src/myserver.c
+	clang ${FLAGS} -o myserver ./src/myserver.c
 
 clean:
-	-rm myserver
-	-rm myclient
+	-rm ./bin/myserver
+	-rm ./bin/myclient
