@@ -80,3 +80,31 @@ ASGN 2:
 Questions:
 - Are the program arguments going to allways be in said order?
 
+
+Things needed to add:
+FORMAT
+- (DONE) item
+
+client:
+- make sure packets are in correct order
+- detect packet loss, exit with failure
+- (DONE) add timeout on both reading and writing to socket
+- client must not hang if server is down
+
+server:
+
+other:
+- Documentation
+    - Mechanism for splitting file into packets
+    - protocol for reordering the orignal file
+
+
+Test Cases:
+- ./myclient 127.0.0.1 8888 25 testfiles/longfile.txt output.txt 
+- ./myclient 127.0.0.1 8888 1500 testfiles/hello.txt output.txt 
+- ./myclient 52.43.121.77 10001 1500 ./testfiles/hello.txt output.txt
+- ./myclient 127.0.0.1 8080 22 testfiles/longfile.txt output2.txt and ./myclient 127.0.0.1 8080 1500 ./testfiles/hello.txt output1.txt ran simultaneously
+- ./myclient 52.43.121.77 10001 24 ./testfiles/longfile.txt output.txt
+
+
+

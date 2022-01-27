@@ -1,0 +1,24 @@
+Max Gasser
+ID: 1684340
+
+files:
+
+myserver.c:
+contains functionality for a server that echos UDP packets back to the client that sent them.
+
+myclient.c:
+contains functionality for a client that reads from a file, sends said file contents to a UDP server that echos the packets back, then writes the file contents to the output file thats specified.
+
+Makefile:
+This file compiles both myclient.c and myserver.c creating two executables.
+
+README.md:
+The file you are reading
+
+To compile program type make
+
+to run program first run the server
+./myserver port
+
+then run x number of clients
+./myclient IP port mtu inputfile outputfile\

@@ -7,6 +7,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <err.h>
+#include <signal.h>
+
+#define HEADER_SIZE 20
+
+// this function is called on a timeout 
+void sig_handler() {
+    err(EXIT_FAILURE, "client timed out");
+}
 
 // this function reads data from a file and
 // sends said data to the server
@@ -18,22 +26,29 @@ void send_file(int sockfd, FILE* in_file, FILE* out_file, int mtu, const struct 
     memset(&send_buffer[0], 0, sizeof(send_buffer));
     memset(&recv_buffer[0], 0, sizeof(recv_buffer));
 
+    signal(SIGALRM, sig_handler); //Register alarm signal to call sig_handler function
+
     // Loop throught file reading mtu bytes from in_file
     // Sending bytes to server, receiving bytes back from server
     // Writing received bytes to out_file
-    while (fgets(send_buffer, mtu, in_file) != NULL) {
+    while (fgets(send_buffer, mtu - HEADER_SIZE, in_file) != NULL) {
         printf("send buffer: %s\n", send_buffer); // print out buffer
 
-        // send packet to server (size mtu)
-        bytes_sent = sendto(sockfd, send_buffer, strlen(send_buffer), 0, (struct sockaddr*) &dest_addr, servlen);
+        alarm(60); // after 60 seconds, we exit program with a transmission error
 
+        // send packet to server (size mtu)
+        bytes_sent = sendto(sockfd, send_buffer, strlen(send_buffer), 0, dest_addr, servlen);
         printf("bytes sent: %i\n", bytes_sent);
         if (bytes_sent == -1) {
             err(EXIT_FAILURE, "Error sending data to server");
         }
+        alarm(0); // reset alarm for successful send
 
-        // receive packets back from server
-        bytes_recv = recvfrom(sockfd, recv_buffer, mtu, 0, NULL, NULL);
+        alarm(60); // after 60 seconds, we exit program with a transmission error
+        bytes_recv = recvfrom(sockfd, recv_buffer, mtu, 0, NULL, NULL); // receive packets back from server
+        alarm(0); // reset alarm on successful reply from server
+
+        printf("Bytes received: %i\n", bytes_recv);
 
         recv_buffer[bytes_recv] = 0; // Null Terminate String
         fputs(recv_buffer, out_file); // write string to out_file
@@ -58,6 +73,16 @@ int main(int argc, char *argv[]) {
     int mtu = atoi(argv[3]);
     char *in_file = argv[4];
     char *out_file = argv[5];
+
+    // check if mtu size is valud
+    if (mtu < 22) {
+        err(EXIT_FAILURE, "Required minimum MTU 22");
+    }
+
+    //check if input and output files are different
+    if (strcmp(in_file, out_file) == 0) {
+        err(EXIT_FAILURE, "Input and Output files must differ");
+    }
 
     printf("Arguments:\n%s %i %i %s %s\n", ip_addr, port, mtu, in_file, out_file);
 
