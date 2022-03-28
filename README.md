@@ -107,4 +107,42 @@ Test Cases:
 - ./myclient 52.43.121.77 10001 24 ./testfiles/longfile.txt output.txt
 
 
+ASGN 3:
+
+Notes:
+
+- Add sequence numbers to beginning of packets
+- add packet type to packets
+- Format
+- [TYPE SEQ_NUMBER DATA]
+- or [DATA TYPE SEQ_NUMBER]
+- need to add reliable data sed
+- for indexing window can do: Current mod Windsz
+
+TODO:
+
+myclient:
+- Implement sequence numbers and message types
+- Implement reliable system
+- Implement 
+
+- Check 
+ 
+my server:
+- add Drop rate from program arguments 
+- add functionality for reading sequence numbers and data types
+- add header reading and sending
+
+Resources:
+
+creating non blocking revc call: https://stackoverflow.com/questions/15941005/making-recvfrom-function-non-blocking
+
+Go-Back-N logic: https://www.baeldung.com/cs/networking-go-back-n-protocol
+
+
+ASGN 4:
+
+
+
+
 
